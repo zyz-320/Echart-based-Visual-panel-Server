@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <button id="connect">连接</button>
+  <button id="send" disabled="true">发送数据</button><br>
+  <p>从服务端接收的数据如下：</p>
+  <span id="recv"></span>
+
+  <script>
+    let connect = document.querySelector('#connect')
+    let send = document.querySelector('#send')
+    let recv = document.querySelector('#recv')
+    let ws = null // 用于存放创建的 WebSocket 对象
+    connect.onclick = function() {
+      // 创建一个 WebSocket 对象
+      ws = new WebSocket('ws://localhost:9998')
+      // 监听连接成功的事件
+      ws.onopen = () => {
+        console.log('连接服务端成功了')
+        // 启用发送数据的按钮
+        send.disabled = false
+      }
+      // 监听连接关闭的事件（也可能是服务器连接不成功）
+      ws.onclose = () => {
+        console.log('服务器连接失败')
+        // 重新禁用发送数据的按钮
+        send.disabled = true
+      }
+      // 监听服务端向客户端发送数据的事件
+      ws.onmessage = msg => {
+        console.log('接收到送服务端发送过来的数据')
+        console.log(msg)
+        let dataStr = msg.data
+        console.log(dataStr)
+        recv.innerHTML = dataStr
+      }
+    }
+    send.onclick = () => {
+      if (ws) {
+        ws.send(JSON.stringify({
+          action: 'getData',
+          socketType: 'trendData', // 客户端使用哪个函数处服务端返回的数据
+          chartName: 'trend',
+          value: '', // 配合 action 为 fullScreen 或者 themeChange 时，传递的表示状态的数据；action 为 getData 时为空字符串
+        }))
+      }
+    }
+  </script>
+</body>
+</html>
